@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        液态玻璃升级：深色模式的窗口装饰。与 values/themes.xml 一一对应，只换颜色。
+
+        与 ui/NukeTheme.kt 的深色分支必须同源：近黑画布 #080B14 + 长春花强调 #91A9FF。
+        状态栏 / 导航栏跟画布同色，让窗口边界消失，界面的「玻璃感」才不会被一条
+        异色系统栏截断。
+    -->
+    <style name="Theme.LuoLiao" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">#91A9FF</item>
+        <item name="android:colorPrimaryDark">#080B14</item>
+        <item name="android:colorAccent">#91A9FF</item>
+        <item name="android:windowBackground">#080B14</item>
+        <item name="android:textColorPrimary">#E8EBF6</item>
+        <item name="android:textColorSecondary">#9BA4BD</item>
+        <item name="android:statusBarColor">#080B14</item>
+        <item name="android:navigationBarColor">#080B14</item>
+        <!-- 深底配浅色图标（这是系统默认，显式写出来以免继承到浅色分支的值） -->
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <style name="Theme.LuoLiao.Dialog" parent="android:Theme.Material.Dialog.Alert">
+        <item name="android:colorPrimary">#91A9FF</item>
+        <item name="android:colorAccent">#91A9FF</item>
+        <item name="android:textColorPrimary">#E8EBF6</item>
+        <item name="android:textColorSecondary">#9BA4BD</item>
+    </style>
+
+    <style name="Theme.LuoLiao.Dialog.Bottom" parent="Theme.LuoLiao.Dialog">
+        <item name="android:windowBackground">#0E1322</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowMinWidthMajor">92%</item>
+        <item name="android:windowMinWidthMinor">92%</item>
+    </style>
+</resources>

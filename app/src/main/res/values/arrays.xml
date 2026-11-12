@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Legacy Xposed scope array (item 1).
+
+        Nuke declares its scope this way and its scope is editable in LSPosed, which is what
+        lets the user add an app clone. The same array is provided here so our module behaves
+        identically: these ids are the DEFAULT, and the user may add their clone.
+    -->
+    <string-array name="xposed_scope">
+        <item>com.tencent.mm</item>
+        <item>com.tencent.mm.u1</item>
+        <item>com.tencent.mm.u2</item>
+        <item>com.tencent.mm.u3</item>
+        <item>com.tencent.mm.u4</item>
+        <item>com.tencent.mm.u5</item>
+        <item>com.tencent.mm.u6</item>
+        <item>com.tencent.mm.u7</item>
+        <item>com.tencent.mm.u8</item>
+        <item>com.tencent.mm.u9</item>
+        <item>com.tencent.mm.clone</item>
+        <item>com.tencent.mm.dual</item>
+        <item>com.tencent.mm.multiapp</item>
+        <item>com.tencent.mm.parallel</item>
+        <item>com.tencent.mm.virtual</item>
+
+        <!--
+            v5.0.0: Douyin is the second host, so its packages are declared here too.
+
+            com.ss.android.ugc.aweme is the one the user runs and the only one verified on a device;
+            .lite is the lite edition and com.ss.android.ugc.trill the overseas build. The same rule as
+            the WeChat clones above applies: these are the DEFAULT, and the user may add their own
+            clone in the LSPosed scope page.
+
+            Kept in sync with HostApp.DOUYIN_PACKAGES, which decides the host at runtime.
+        -->
+        <item>com.ss.android.ugc.aweme</item>
+        <item>com.ss.android.ugc.aweme.lite</item>
+        <item>com.ss.android.ugc.trill</item>
+
+        <!--
+            v6.0.0: Soul is the third host.
+
+            cn.soulapp.android is the ONLY package Soul ships; its binary AndroidManifest.xml was
+            parsed directly and reports package="cn.soulapp.android" versionName="6.37.0"
+            versionCode="26091510". Unlike WeChat there is no family of clone packages to list; a
+            third-party cloner keeps that name (or appends a suffix), and the suffix case is already
+            accepted at runtime by the `cn.soulapp.android.` prefix rule in HostApp.of.
+
+            Kept in sync with HostApp.SOUL_PACKAGES, which decides the host at runtime.
+        -->
+        <item>cn.soulapp.android</item>
+
+        <!--
+            v7.0.0: Kuaishou is the fourth host.
+
+            com.smile.gifmaker is the ONLY package Kuaishou ships; its binary AndroidManifest.xml was
+            parsed directly and reports package="com.smile.gifmaker" versionName="14.8.30.50423"
+            versionCode="50423". Unlike WeChat there is no family of clone packages to list; a
+            third-party cloner keeps that name (or appends a suffix), and the suffix case is already
+            accepted at runtime by the com.smile.gifmaker. prefix rule in HostApp.of.
+
+            Kept in sync with HostApp.KUAISHOU_PACKAGES, which decides the host at runtime.
+        -->
+        <item>com.smile.gifmaker</item>
+
+        <!--
+            v8.0.0: QQ is the fifth host.
+
+            com.tencent.mobileqq is the ONLY package QQ ships; its binary AndroidManifest.xml was
+            parsed directly by _tools/qq/qq_manifest.py and reports
+            package=com.tencent.mobileqq versionName=9.3.65 versionCode=16240. Confirmed on the
+            device as well: adb shell pm list packages shows exactly one QQ package and NO
+            tim / minihd / qqi / HD / lite variant, so unlike WeChat there is no clone-package family
+            to list. A third-party cloner that keeps that name (or appends a suffix) is already
+            accepted at runtime by the com.tencent.mobileqq. prefix rule in HostApp.of.
+
+            The prefix is the FULL package name plus a dot, never just com.tencent.: that device also
+            has com.tencent.qqmusic and com.tencent.qqlive installed, and a looser rule would capture
+            them and install QQ hooks into an unrelated app.
+
+            NOTE: io.github.qqglassnav.replica is a THIRD-PARTY app whose name merely mentions QQ. It
+            must never be added here.
+
+            QQ's own sub-PROCESSES (com.tencent.mobileqq:video, com.tencent.mobileqq:MSF) are
+            deliberately NOT listed: those are process names, not packages, and this array feeds the
+            LSPosed scope list, which takes packages. LSPosed reports a ":suffixed" process against
+            packageName=com.tencent.mobileqq, which this entry already covers.
+
+            Kept in sync with HostApp.QQ_PACKAGES, which decides the host at runtime.
+        -->
+        <item>com.tencent.mobileqq</item>
+
+        <!--
+            v8.1.0: TIM (腾讯征程 / TIM) joins the QQ host.
+
+            It is a SEPARATE APK with a separate package, but it runs the SAME NT chat engine, so it is
+            served by the same hooks. Measured, not assumed: the TIM 4.1.0 APK (154 MB, 24 dex) was
+            unpacked and scanned, and every class this module hooks on QQ is present under the same
+            com.tencent.qqnt.* and com.tencent.mobileqq.* names: the long-press menu container and its
+            no-icon twin, the menu item type, BubblePopupWindow, AIOMsgItem, MsgRecord, AbsMsgListVB,
+            the input box and the multi-select event.
+
+            Why it is NOT a sixth host: the module gives each host a package family, a display name and
+            a hook set. TIM shares QQ's hook SET, differing only in brand text, so a sixth constant
+            would duplicate every host branch in the codebase.
+
+            The com.tencent.tim. prefix is used at runtime, never a bare com.tencent., for the same
+            reason QQ's is not: this device also has qqmusic, qqlive, tmgp.* and others installed.
+        -->
+        <item>com.tencent.tim</item>
+
+        <!--
+            v9.5.0: Xiaohongshu (小红书) is the SIXTH host.
+
+            ============================== WHY THIS ENTRY IS THE ONE THAT MATTERS MOST ==============================
+
+            This array IS the LSPosed scope picker's list. Omitting a host here means the user cannot tick
+            it at all, so every hook in this module is unreachable for that app, no matter how correctly
+            it was written. That is exactly what happened when this host was first added, and the user
+            reported it plainly:
+
+                「怎么推荐作用域推荐应用没有小红书了」
+
+            Adding the host to `HostApp` is therefore only HALF the work. A new host touches FIVE places,
+            and the first three produce a compile error or a failing test if forgotten while these last
+            two fail SILENTLY in the UI:
+
+              1. `HostApp`: the enum constant, its packages and `of()`; a missed `when` branch will not
+                 compile, which is the safety net.
+              2. `RealHostsListEveryHostAndExcludeUnknown`: an exact-list test that fails until updated.
+              3. `WeChatHooks`: the host's own hook arm; a missed `when` branch will not compile.
+              4. THIS ARRAY: the scope picker's contents. No error, no test failure: the app simply
+                 cannot be selected.
+              5. The manifest `queries` block: likewise no error, because `getPackageInfo` throws on
+                 Android 11+ and the UI reports 「未安装」 for an app that is installed and running.
+
+            com.xingin.xhs is the ANDROID package. The APK's internal classes live under `com.xingin.*`
+            (`com.xingin.im.*`, `com.xingin.chatbase.bean.*`), but that namespace is NOT a package and
+            must not appear here. Runtime resolution additionally accepts a `com.xingin.xhs.` suffix for
+            a third-party clone, via the prefix rule in HostApp.of.
+
+            Kept in sync with HostApp.XIAOHONGSHU_PACKAGES, which decides the host at runtime.
+        -->
+        <item>com.xingin.xhs</item>
+    </string-array>
+</resources>
