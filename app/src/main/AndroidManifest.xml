@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        item 1: Android 11+ hides other packages unless they are declared here.
+
+        Without this, `packageManager.getPackageInfo("com.tencent.mm", 0)` throws NameNotFoundException while
+        WeChat is installed and running, and the UI reported "微信未安装".
+
+        v5.0.0: the same applies to Douyin, which is now a host. HostApp.installed() and
+        HostApp.versionOf() query each host's package to list what the user actually has, so every
+        package they may query must be visible here, not just the WeChat one.
+    -->
+    <queries>
+        <package android:name="com.tencent.mm" />
+        <package android:name="com.ss.android.ugc.aweme" />
+        <package android:name="com.ss.android.ugc.aweme.lite" />
+        <package android:name="com.ss.android.ugc.trill" />
+        <!--
+            v6.0.0: Soul. Same reason as the Douyin entries above: HostApp.versionOf() calls
+            getPackageInfo on each host's first package, and on Android 11+ a package that is not
+            declared here is INVISIBLE, so the call throws and the UI reports 「Soul 未安装」 while
+            Soul is installed and running. That is the exact failure this block already prevented
+            for WeChat.
+        -->
+        <package android:name="cn.soulapp.android" />
+        <!--
+            v7.0.0: Kuaishou. Same reason as the Soul entry above, which is the same reason as the
+            Douyin entries before it: HostApp.versionOf() calls getPackageInfo on each host's first
+            package, and on Android 11+ a package that is not declared here is INVISIBLE, so the
+            call throws and the UI reports 「快手 未安装」 while Kuaishou is installed and running.
+        -->
+        <package android:name="com.smile.gifmaker" />
+        <!--
+            v8.0.0: QQ. Same reason as the Kuaishou entry above, which is the same reason as every
+            entry before it: HostApp.versionOf() calls getPackageInfo on each host's first package, and
+            on Android 11+ a package that is not declared here is INVISIBLE, so the call throws and the
+            UI reports 「QQ 未安装」 while QQ is installed and running.
+
+            NOTE the AndroidManifest also needs this because QQ ships sub-processes
+            (com.tencent.mobileqq:video, com.tencent.mobileqq:MSF); those are processes rather than
+            packages and are intentionally NOT declared here.
+        -->
+        <package android:name="com.tencent.mobileqq" />
+
+        <!--
+            v8.1.0: TIM, for the same reason as the QQ entry above. On Android 11+ a package that is
+            not declared here is INVISIBLE to getPackageInfo, so without this line the UI would report
+            「TIM 未安装」 while TIM is installed and running. TIM is the QQ host: a separate APK with
+            the same NT chat engine, so it is served by the same hooks. See HostApp.QQPkgs.QQ for the
+            measured evidence (the TIM 4.1.0 APK was unpacked and every hooked class was found).
+        -->
+        <package android:name="com.tencent.tim" />
+
+        <!--
+            v9.5.0: Xiaohongshu (小红书), for the same reason as every entry above.
+
+            ============================== WHY THIS LINE WAS MISSING, AND WHAT IT COST ==============================
+
+            This is the SIXTH host, and forgetting this line is the one step of adding a host that
+            produces NO error anywhere, so it shipped broken in the first 9.5.0 build and the user
+            reported it directly:
+
+                「怎么推荐作用域推荐应用没有小红书了」
+
+            On Android 11+ a package not declared here is INVISIBLE to `getPackageInfo`, and
+            `HostApp.versionOf()` queries each host's first package to build the list. Without this line
+            the call throws NameNotFoundException, the host is dropped from the recommendation list, and
+            the app reports 「未安装」 even while 小红书 is installed and running, so the user cannot
+            even SELECT it in LSPosed's scope picker, which makes every hook in this module unreachable.
+
+            NOTE the package is `com.xingin.xhs`, the ANDROID package. The APK's internal Java classes
+            live under `com.xingin.*` (for example `com.xingin.im.*`, `com.xingin.chatbase.bean.*`), but
+            declaring that namespace here would be wrong: `<queries>` matches package names, and
+            `com.xingin` is not a package. The clone packages follow the parent's pattern on this host
+            (see HostApp.of's prefix rule).
+        -->
+        <package android:name="com.xingin.xhs" />
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/luoliao_icon"
+        android:label="落聊"
+        android:roundIcon="@mipmap/luoliao_icon_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.LuoLiao">
+
+        
+
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:exported="true"
+            android:label="落聊"
+            android:theme="@style/Theme.LuoLiao" />
+
+        <!--
+            item 1: LEGACY Xposed registration, exactly as Nuke declares it.
+
+            Nuke ships these four meta-data entries plus assets/xposed_init, and its scope stays EDITABLE
+            in LSPosed. That is how it works with an app clone. Registering the same way here gives our
+            module that behaviour too, so the user can tick their clone in the scope page.
+
+            Both registrations point at the same ModuleEntry, so whichever API LSPosed chooses, the module
+            loads.
+        -->
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="82" />
+        <!--
+            Shown in the LSPosed module list. v5.0.0: it named only 微信, so Douyin users had no way to
+            know the module also serves 抖音. Both hosts are named now. v6.0.0 adds Soul, by the same
+            reasoning applies a third time: a Soul user reading 「微信/抖音」 would conclude the module
+            is not for them, even though it is ticked in their scope list. v7.0.0 adds 快手 for exactly
+            the same reason; the list is now 微信/抖音/Soul/快手. v8.0.0 adds QQ, which is the point at
+            which this list must stay accurate: it has now grown once per host, and a QQ user reading a
+            description that omits QQ would uninstall the module rather than file a bug.
+        -->
+        <meta-data
+            android:name="xposeddescription"
+            android:value="落聊：长按微信 / 抖音 / Soul / 快手 / QQ / 小红书 的消息进行 AI 意图分析" />
+        <meta-data
+            android:name="xposedscope"
+            android:resource="@array/xposed_scope" />
+
+        <!--
+            REQUIRED for libxposed remote preferences.
+            Without this declaration the framework does not expose the module's
+            SharedPreferences to the hooked (WeChat) process, so getRemotePreferences()
+            returns nothing and the API key always reads back empty.
+        -->
+        <meta-data
+            android:name="xposedsharedprefs"
+            android:value="true" />
+
+        <!--
+            v10.1.0: 模块入口。用户要求「安装落聊桌面不会显示应用」。
+
+            ==================== 为什么用 CATEGORY_INFO 而不是删掉 intent-filter ====================
+
+            直接删掉 intent-filter 会让 Activity **无法被任何外部应用启动**，包括 LSPosed ——
+            用户就再也进不去这个配置界面了（而且没有桌面图标可以恢复，等于把自己锁在门外）。
+            所以正确做法不是"删掉入口"，而是**换一个不被桌面显示的入口类别**。
+
+            Android 对这件事有专门的约定：CATEGORY_INFO 表示"这是这个应用的信息/设置页"，
+            桌面**不会**为它创建图标，但它仍然是一个可解析的 ACTION_MAIN 入口。
+            更关键的是 AOSP 的 `PackageManager.getLaunchIntentForPackage()` 实现是
+            **先查 CATEGORY_INFO、查不到才退回 CATEGORY_LAUNCHER**：
+
+                intent = new Intent(ACTION_MAIN).addCategory(CATEGORY_INFO).setPackage(pkg)
+                if (queryIntentActivities(intent).size() == 0) {
+                    intent = new Intent(ACTION_MAIN).addCategory(CATEGORY_LAUNCHER)...
+                }
+
+            而 LSPosed 的模块详情页正是用 getLaunchIntentForPackage 来放「打开」按钮的，
+            所以这条改动的结果恰好是用户要的：**桌面没有图标，LSPosed 里还能打开**。
+
+            exported 必须保持 true：LSPosed 是**另一个应用**，跨应用启动要求 exported。
+
+            【兜底入口】万一某个第三方桌面仍然显示了它，或者用户需要在没有 LSPosed 的情况下进来，
+            可以用 adb 直接按组件名启动（不需要 exported 之外的任何东西）：
+                adb shell am start -n com.luoliaoo.wechat/.ui.LauncherActivity
+        -->
+        <activity
+            android:name=".ui.LauncherActivity"
+            android:exported="true"
+            android:theme="@style/Theme.LuoLiao">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.INFO" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            v2.5.0: lets the share sheet hand the packaged log to another app without any storage permission.
+
+            v7.1.0 FIX (captain): the authority used to be the HARDCODED literal
+            "com.luoliaoo.wechat.fileprovider". A provider authority is unique across the
+            whole device, so the `debug` build (which renames the package to
+            `com.luoliaoo.wechat.debug` via `applicationIdSuffix`) declared the SAME
+            authority as the release build and could not be installed alongside it:
+
+                INSTALL_FAILED_CONFLICTING_PROVIDER: provider name
+                com.luoliaoo.wechat.fileprovider (in package com.luoliaoo.wechat.debug)
+                is already used by com.luoliaoo.wechat
+
+            That broke the whole point of having two flavours (the debug build with full
+            logging is the one used for on-device diagnosis). `${applicationId}` resolves
+            per-variant, so release keeps the old authority and debug gets
+            `com.luoliaoo.wechat.debug.fileprovider`, and both install together.
+
+            WHY THIS WAS EASY TO MISS: every OTHER package-derived value in this manifest
+            is already variant-aware (e.g. the androidx.startup provider merged by the
+            manifest merger takes the suffixed id automatically). Only a hand-written
+            literal stays fixed, so it silently diverges the moment a suffix is added.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/luoliao_file_paths" />
+        </provider>
+
+    </application>
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+</manifest>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        液态玻璃升级：窗口装饰采用「浅色」一套，配合 values-night/themes.xml 的深色一套。
+
+        为什么这里只有窗口级属性：模块的全部界面都用 Kotlin 代码绘制（NukeTheme），
+        这里能影响的只有窗口背景、状态栏 / 导航栏配色，以及平台 AlertDialog 的按钮文字色。
+        真正的设计 token 在 ui/NukeTheme.kt 里，两处必须保持同一套色板，改一处要改两处。
+
+        浅色：冷调近白玻璃底（#F4F6FC）+ 靛蓝强调（#4C6FF0），与 NukeTheme 的浅色分支一致。
+        深色：见 values-night/themes.xml。
+    -->
+    <style name="Theme.LuoLiao" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#4C6FF0</item>
+        <item name="android:colorPrimaryDark">#E7EBF7</item>
+        <item name="android:colorAccent">#4C6FF0</item>
+        <item name="android:windowBackground">#F4F6FC</item>
+        <item name="android:textColorPrimary">#1A1F36</item>
+        <item name="android:textColorSecondary">#5A6379</item>
+        <item name="android:statusBarColor">#F4F6FC</item>
+        <item name="android:navigationBarColor">#F4F6FC</item>
+        <!-- 浅底配深色图标，否则状态栏图标看不见 -->
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="Theme.LuoLiao.Dialog" parent="android:Theme.Material.Light.Dialog.Alert">
+        <item name="android:colorPrimary">#4C6FF0</item>
+        <item name="android:colorAccent">#4C6FF0</item>
+        <item name="android:textColorPrimary">#1A1F36</item>
+        <item name="android:textColorSecondary">#5A6379</item>
+    </style>
+
+    <style name="Theme.LuoLiao.Dialog.Bottom" parent="Theme.LuoLiao.Dialog">
+        <item name="android:windowBackground">#FBFCFE</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowMinWidthMajor">92%</item>
+        <item name="android:windowMinWidthMinor">92%</item>
+    </style>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    v2.5.0: the locations the share sheet may read.
+
+    The packaged log is written to the EXTERNAL files dir when it is available and to the internal files dir
+    otherwise, so both are declared. `files-path` and `external-files-path` are scoped to this app's own
+    directories, so nothing else on the device is exposed.
+-->
+<paths>
+    <external-files-path name="ext" path="." />
+    <files-path name="int" path="." />
+    <cache-path name="cache" path="." />
+</paths>

@@ -1,0 +1,36 @@
+# ---- 本机环境（绝不提交）----
+local.properties
+*.iml
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- 签名凭据（绝不提交）----
+# 签名库：公开等于让任何人能签出可覆盖安装的同名包，绝不提交
+luoliao.jks
+*.keystore
+keystore.properties
+
+# ---- 构建产物 ----
+build/
+.gradle/
+.kotlin/
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+*.hprof
+lint-results*.html
+release/
+
+# ---- 生成的 EDA ----
+app/build/
+
+# ���ر���
+*.bak*
+
+# 发布用的成品包（apk/ 目录下的要提交，其余构建产物不提交）
+!apk/*.apk
